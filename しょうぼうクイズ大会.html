@@ -1,0 +1,651 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>しょうぼうクイズ大会</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mochiy+Pop+One&family=M+PLUS+Rounded+1c:wght@500;700;800&display=swap">
+<style>
+/* Layout: one centered "station board" column; topbar with reflective-tape stripe, big tap targets for iPad */
+:root {
+  --red: #E0301E;        /* fire-engine red */
+  --red-deep: #A81F12;
+  --yellow: #FFC21A;     /* helmet / hazard yellow */
+  --navy: #1B2A4A;       /* uniform navy, main text */
+  --sky: #EAF3FA;        /* page ground */
+  --paper: #FFFFFF;
+  --silver: #D9DEE6;     /* reflective tape */
+  --muted: #5B6984;
+  --ok: #1E9E5A;
+  --ng: #6E7A92;
+  --c1: #E0301E; --c2: #1F6FD1; --c3: #F2A900; --c4: #1E9E5A;
+  --font-display: "Mochiy Pop One", "M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", sans-serif;
+  --font-body: "M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", "Hiragino Sans", "Yu Gothic", sans-serif;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  background: var(--sky);
+  color: var(--navy);
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 18px;
+  line-height: 1.6;
+  -webkit-tap-highlight-color: transparent;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+button:focus-visible, input:focus-visible { outline: 4px solid var(--c2); outline-offset: 3px; }
+rt { font-size: 0.5em; font-weight: 700; color: inherit; opacity: .85; }
+
+.topbar {
+  background: var(--red);
+  color: #fff;
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20;
+}
+.topbar-inner {
+  max-width: 960px; margin: 0 auto; padding: 10px 16px;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+}
+.brand { font-family: var(--font-display); font-size: 1.15rem; letter-spacing: .04em; display: flex; align-items: center; gap: 8px; }
+.tape { height: 14px; background: linear-gradient(var(--yellow) 0 30%, var(--silver) 30% 70%, var(--yellow) 70% 100%); }
+.sound-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(255,255,255,.16); border: 2px solid rgba(255,255,255,.6);
+  color: #fff; border-radius: 999px; padding: 6px 14px; font-size: .9rem; min-height: 44px;
+}
+.sound-btn[aria-pressed="false"] { opacity: .75; }
+
+.app { max-width: 960px; margin: 0 auto; padding: 20px 16px 48px; }
+.screen { display: flex; flex-direction: column; gap: 20px; }
+
+/* ---------- start ---------- */
+.hero { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 6px; padding-block: 8px 4px; }
+.hero h1 {
+  font-family: var(--font-display); font-weight: 400;
+  font-size: clamp(2rem, 6vw, 3.4rem); line-height: 1.2; margin: 0; color: var(--red);
+  text-wrap: balance;
+  text-shadow: 3px 3px 0 var(--yellow);
+}
+.hero p { margin: 0; color: var(--muted); }
+.panel { background: var(--paper); border-radius: 24px; padding: 20px; box-shadow: 0 4px 0 rgba(27,42,74,.08); display: flex; flex-direction: column; gap: 12px; }
+.label { font-size: 1rem; color: var(--muted); letter-spacing: .05em; }
+.name-input {
+  width: 100%; font: inherit; font-size: 1.4rem; padding: 14px 18px; border-radius: 16px;
+  border: 3px solid var(--silver); background: var(--sky); color: var(--navy);
+}
+.avatars { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
+.avatar {
+  aspect-ratio: 1; max-width: 100%; font-size: clamp(1.8rem, 5vw, 2.6rem);
+  border-radius: 20px; border: 3px solid var(--silver); background: var(--sky);
+  display: grid; place-items: center;
+  transition: transform .15s;
+}
+.avatar[aria-checked="true"] { border-color: var(--red); background: #FFE9E5; transform: scale(1.06); }
+.courses { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.course {
+  text-align: left; border-radius: 20px; border: 3px solid var(--silver); background: var(--paper);
+  padding: 16px 18px; display: flex; flex-direction: column; gap: 4px; min-width: 0;
+}
+.course strong { font-family: var(--font-display); font-weight: 400; font-size: 1.35rem; }
+.course span { color: var(--muted); font-size: .95rem; }
+.course .meta { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+.chip { font-size: .8rem; padding: 2px 10px; border-radius: 999px; background: var(--sky); color: var(--navy); }
+.course[aria-checked="true"] { border-color: var(--red); box-shadow: 0 0 0 4px #FFD3CC inset; }
+.course[aria-checked="true"] strong { color: var(--red); }
+
+.big-btn {
+  border: none; border-radius: 999px; background: var(--red); color: #fff;
+  font-family: var(--font-display); font-size: 1.6rem; padding: 18px 28px; min-height: 72px;
+  box-shadow: 0 6px 0 var(--red-deep); transition: transform .08s, box-shadow .08s;
+}
+.big-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 var(--red-deep); }
+.big-btn:disabled { background: var(--silver); box-shadow: 0 6px 0 #B7BECA; color: var(--muted); cursor: default; }
+.big-btn.secondary { background: var(--navy); box-shadow: 0 6px 0 #0E1830; }
+
+/* ---------- quiz ---------- */
+.q-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.q-count { font-family: var(--font-display); font-size: 1.3rem; }
+.q-count small { font-family: var(--font-body); font-size: .9rem; color: var(--muted); }
+.q-type { background: var(--navy); color: #fff; border-radius: 999px; padding: 4px 14px; font-size: .9rem; }
+.q-score { font-variant-numeric: tabular-nums; background: var(--paper); border-radius: 999px; padding: 4px 14px; }
+.timer { position: relative; height: 22px; background: var(--paper); border-radius: 999px; overflow: hidden; border: 3px solid var(--paper); box-shadow: 0 0 0 2px var(--silver); }
+.timer-fill { height: 100%; width: 100%; background: var(--yellow); border-radius: 999px; transform-origin: left; }
+.timer-fill.hurry { background: var(--red); }
+.timer-num { position: absolute; inset: 0; display: grid; place-items: center; font-size: .8rem; font-variant-numeric: tabular-nums; }
+.q-card { background: var(--paper); border-radius: 28px; padding: 24px 20px; text-align: center; box-shadow: 0 4px 0 rgba(27,42,74,.08); }
+.q-text { font-size: clamp(1.4rem, 3.6vw, 2rem); line-height: 1.9; margin: 0; text-wrap: balance; }
+.q-hint { margin-top: 6px; color: var(--muted); font-size: 1rem; }
+
+.choices { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.choice {
+  position: relative; border: none; border-radius: 22px; color: #fff; min-height: 96px;
+  padding: 14px 16px 14px 62px; font-size: clamp(1.15rem, 2.8vw, 1.5rem); text-align: left; line-height: 1.8;
+  box-shadow: 0 6px 0 rgba(0,0,0,.22); transition: transform .08s, box-shadow .08s, opacity .2s; min-width: 0;
+}
+.choice:active { transform: translateY(4px); box-shadow: 0 2px 0 rgba(0,0,0,.22); }
+.choice .shape { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); width: 34px; height: 34px; display: grid; place-items: center; }
+.choice:nth-child(1) { background: var(--c1); }
+.choice:nth-child(2) { background: var(--c2); }
+.choice:nth-child(3) { background: var(--c3); color: var(--navy); }
+.choice:nth-child(4) { background: var(--c4); }
+
+.tf { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.tf button {
+  border-radius: 28px; border: 4px solid var(--silver); background: var(--paper); min-height: 180px;
+  display: grid; place-items: center; box-shadow: 0 6px 0 var(--silver); transition: transform .08s;
+}
+.tf button:active { transform: translateY(4px); }
+.tf svg { width: min(120px, 60%); height: auto; }
+
+.checks { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.check {
+  display: flex; align-items: center; gap: 14px; text-align: left; min-height: 80px;
+  background: var(--paper); border: 3px solid var(--silver); border-radius: 20px; padding: 12px 16px;
+  font-size: clamp(1.1rem, 2.6vw, 1.35rem); line-height: 1.8; min-width: 0;
+}
+.check .box { flex: none; width: 34px; height: 34px; border-radius: 10px; border: 3px solid var(--silver); display: grid; place-items: center; background: var(--sky); }
+.check[aria-pressed="true"] { border-color: var(--c2); background: #E8F1FD; }
+.check[aria-pressed="true"] .box { background: var(--c2); border-color: var(--c2); }
+.check[aria-pressed="true"] .box::after { content: ""; width: 14px; height: 8px; border: solid #fff; border-width: 0 0 4px 4px; transform: translateY(-2px) rotate(-45deg); }
+
+.pics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.pic {
+  position: relative; background: var(--paper); border: 4px solid var(--silver); border-radius: 22px; padding: 10px;
+  aspect-ratio: 1; display: grid; place-items: center; box-shadow: 0 5px 0 var(--silver); min-width: 0;
+}
+.pic svg { width: 100%; height: auto; max-height: 100%; }
+.pic .tag { position: absolute; top: 8px; left: 8px; width: 30px; height: 30px; border-radius: 50%; background: var(--navy); color: #fff; display: grid; place-items: center; font-size: .9rem; }
+
+.order-slots { display: flex; flex-direction: column; gap: 10px; }
+.slot {
+  display: flex; align-items: center; gap: 14px; min-height: 70px; padding: 10px 14px;
+  border-radius: 18px; border: 3px dashed var(--silver); background: transparent; text-align: left;
+  font-size: clamp(1.05rem, 2.6vw, 1.3rem); line-height: 1.8;
+}
+.slot .n { flex: none; width: 40px; height: 40px; border-radius: 50%; background: var(--silver); color: var(--navy); display: grid; place-items: center; font-family: var(--font-display); }
+.slot.filled { border-style: solid; border-color: var(--c2); background: var(--paper); }
+.slot.filled .n { background: var(--c2); color: #fff; }
+.slot .empty { color: var(--muted); font-size: .95rem; }
+.pool { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+.pool button {
+  background: var(--yellow); border: none; border-radius: 16px; padding: 12px 18px; min-height: 60px;
+  font-size: clamp(1.05rem, 2.6vw, 1.25rem); line-height: 1.8; box-shadow: 0 5px 0 #C99600; max-width: 100%;
+}
+.pool button[hidden] { display: none; }
+.actions { display: flex; justify-content: center; gap: 14px; flex-wrap: wrap; }
+.ghost-btn { background: transparent; border: 3px solid var(--silver); border-radius: 999px; padding: 10px 22px; min-height: 56px; color: var(--muted); }
+
+/* reveal states */
+.revealed .choice, .revealed .check, .revealed .pic, .revealed .tf button { pointer-events: none; }
+.is-wrong { opacity: .35; }
+.is-right { outline: 6px solid var(--ok); outline-offset: 3px; }
+.is-picked-wrong { outline: 6px dashed var(--ng); outline-offset: 3px; }
+
+/* ---------- feedback sheet ---------- */
+.sheet-wrap { position: fixed; inset: 0; z-index: 30; display: flex; align-items: flex-end; justify-content: center; background: rgba(27,42,74,.35); padding: 16px; padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px)); }
+.sheet {
+  width: 100%; max-width: 720px; background: var(--paper); border-radius: 28px; padding: 22px 22px 20px;
+  display: flex; flex-direction: column; gap: 12px; animation: up .35s cubic-bezier(.2,1.4,.4,1);
+  max-height: 85%; overflow-y: auto;
+}
+@keyframes up { from { transform: translateY(60px); opacity: 0; } to { transform: none; opacity: 1; } }
+.verdict { display: flex; align-items: center; gap: 14px; }
+.verdict-mark { flex: none; width: 72px; height: 72px; }
+.verdict h2 { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: clamp(2rem, 6vw, 2.8rem); line-height: 1.1; }
+.verdict.ok h2 { color: var(--red); }
+.verdict.ng h2 { color: var(--c2); }
+.points { display: flex; gap: 8px; flex-wrap: wrap; font-variant-numeric: tabular-nums; }
+.points .chip { font-size: .95rem; padding: 4px 12px; }
+.points .chip.bonus { background: #FFF1C7; }
+.explain { background: var(--sky); border-radius: 18px; padding: 14px 16px; line-height: 2; }
+.explain b { display: block; font-size: .9rem; color: var(--muted); letter-spacing: .1em; }
+
+/* ---------- result ---------- */
+.result-hero { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.result-hero .who { font-size: 3.4rem; line-height: 1; }
+.result-hero h2 { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: clamp(1.6rem, 5vw, 2.4rem); }
+.medal-score { font-family: var(--font-display); font-size: clamp(3rem, 12vw, 5.2rem); color: var(--red); line-height: 1.1; font-variant-numeric: tabular-nums; text-shadow: 4px 4px 0 var(--yellow); }
+.medal-score small { font-size: .35em; color: var(--navy); text-shadow: none; }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.stat { background: var(--paper); border-radius: 20px; padding: 14px; text-align: center; }
+.stat b { display: block; font-family: var(--font-display); font-weight: 400; font-size: 1.8rem; font-variant-numeric: tabular-nums; }
+.stat span { color: var(--muted); font-size: .9rem; }
+.rank-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.rank-head h3 { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: 1.4rem; }
+.rank-head small { color: var(--muted); font-size: .85rem; }
+.ranking { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.ranking li {
+  display: grid; grid-template-columns: 48px 44px 1fr auto; align-items: center; gap: 10px;
+  background: var(--sky); border-radius: 16px; padding: 8px 14px; font-variant-numeric: tabular-nums;
+}
+.ranking li .pos { font-family: var(--font-display); font-size: 1.3rem; text-align: center; }
+.ranking li .av { font-size: 1.8rem; text-align: center; }
+.ranking li .nm { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ranking li.top1 .pos { color: #C99600; }
+.ranking li.me { background: #FFE9E5; outline: 3px solid var(--red); }
+.ranking li.me .nm::after { content: "あなた"; margin-left: 8px; font-size: .75rem; background: var(--red); color: #fff; border-radius: 999px; padding: 1px 8px; vertical-align: middle; }
+
+.confetti { position: fixed; inset: 0; pointer-events: none; z-index: 40; overflow: hidden; }
+.confetti i { position: absolute; top: -20px; width: 10px; height: 16px; border-radius: 3px; animation: fall linear forwards; }
+@keyframes fall { to { transform: translateY(110vh) rotate(720deg); } }
+
+.pop { animation: pop .4s ease; }
+@keyframes pop { 0% { transform: scale(.9); } 60% { transform: scale(1.04); } 100% { transform: none; } }
+
+@media (max-width: 640px) {
+  .choices, .checks, .courses { grid-template-columns: 1fr; }
+  .pics { grid-template-columns: 1fr 1fr; }
+  .avatars { grid-template-columns: repeat(3, 1fr); }
+  .tf button { min-height: 140px; }
+  .ranking li { grid-template-columns: 36px 36px 1fr auto; padding: 8px 10px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+  .confetti { display: none; }
+}
+</style>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true"><path d="M4 22c0-7 5-12 12-12s12 5 12 12z" fill="#FFC21A"/><rect x="2" y="21" width="28" height="5" rx="2" fill="#FFC21A"/><rect x="14" y="6" width="4" height="7" rx="2" fill="#fff"/></svg>
+      しょうぼうクイズ たいかい
+    </div>
+    <button class="sound-btn" id="soundBtn" aria-pressed="true" type="button">
+      <svg id="soundIcon" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9v6h4l5 4V5L7 9z" fill="currentColor"/><path id="soundWaves" d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+      <span id="soundLabel">おと ON</span>
+    </button>
+  </div>
+  <div class="tape" aria-hidden="true"></div>
+</header>
+
+<main class="app" id="app"></main>
+
+<script>
+(() => {
+  // ---------- helpers ----------
+  const R = (kanji, kana) => `<ruby>${kanji}<rt>${kana}</rt></ruby>`;
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+  const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const store = {
+    get(k, d) { try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch { return d; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
+  };
+
+  // ---------- sound (WebAudio, no files) ----------
+  let soundOn = store.get('fq-sound', true);
+  let actx = null;
+  const ctx = () => { if (!actx) { try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch { actx = null; } } if (actx && actx.state === 'suspended') actx.resume(); return actx; };
+  function tone(freq, dur, type = 'sine', when = 0, vol = .14) {
+    if (!soundOn) return; const c = ctx(); if (!c) return;
+    const t = c.currentTime + when, o = c.createOscillator(), g = c.createGain();
+    o.type = type; o.frequency.setValueAtTime(freq, t);
+    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t + dur);
+    o.connect(g).connect(c.destination); o.start(t); o.stop(t + dur + .02);
+  }
+  const sfx = {
+    tap: () => tone(700, .06, 'square', 0, .04),
+    tick: () => tone(1000, .05, 'square', 0, .05),
+    correct: () => [523, 659, 784, 1047].forEach((f, i) => tone(f, .18, 'triangle', i * .09, .16)),
+    wrong: () => { tone(392, .22, 'triangle', 0, .15); tone(311, .35, 'triangle', .2, .15); },
+    siren: () => {
+      if (!soundOn) return; const c = ctx(); if (!c) return;
+      const o = c.createOscillator(), g = c.createGain(), t = c.currentTime;
+      o.type = 'sawtooth'; g.gain.setValueAtTime(.05, t); g.gain.linearRampToValueAtTime(.001, t + 1.4);
+      o.frequency.setValueAtTime(600, t); o.frequency.linearRampToValueAtTime(950, t + .5); o.frequency.linearRampToValueAtTime(600, t + 1.2);
+      o.connect(g).connect(c.destination); o.start(t); o.stop(t + 1.45);
+    },
+    fanfare: () => [[523,0],[523,.15],[523,.3],[659,.45],[784,.75],[659,1.0],[784,1.15],[1047,1.35]].forEach(([f, w]) => tone(f, .28, 'square', w, .07))
+  };
+  const soundBtn = document.getElementById('soundBtn');
+  function paintSound() {
+    soundBtn.setAttribute('aria-pressed', String(soundOn));
+    document.getElementById('soundLabel').textContent = soundOn ? 'おと ON' : 'おと OFF';
+    document.getElementById('soundWaves').style.display = soundOn ? '' : 'none';
+  }
+  soundBtn.addEventListener('click', () => { soundOn = !soundOn; store.set('fq-sound', soundOn); paintSound(); if (soundOn) sfx.tap(); });
+  paintSound();
+
+  // ---------- illustrations ----------
+  const svg = {
+    maru: `<svg viewBox="0 0 100 100" aria-label="まる"><circle cx="50" cy="50" r="36" fill="none" stroke="#E0301E" stroke-width="14"/></svg>`,
+    batsu: `<svg viewBox="0 0 100 100" aria-label="ばつ"><path d="M20 20L80 80M80 20L20 80" stroke="#1F6FD1" stroke-width="14" stroke-linecap="round"/></svg>`,
+    shapes: [
+      `<svg viewBox="0 0 34 34"><path d="M17 2L32 17L17 32L2 17z" fill="#fff"/></svg>`,
+      `<svg viewBox="0 0 34 34"><circle cx="17" cy="17" r="14" fill="#fff"/></svg>`,
+      `<svg viewBox="0 0 34 34"><path d="M17 3L32 30H2z" fill="#1B2A4A"/></svg>`,
+      `<svg viewBox="0 0 34 34"><rect x="4" y="4" width="26" height="26" rx="3" fill="#fff"/></svg>`
+    ],
+    firetruck: `<svg viewBox="0 0 160 110"><rect x="10" y="40" width="140" height="44" rx="6" fill="#E0301E"/><rect x="104" y="28" width="46" height="30" rx="5" fill="#E0301E"/><rect x="112" y="33" width="30" height="16" rx="3" fill="#BFE3FF"/><rect x="14" y="30" width="86" height="6" rx="2" fill="#B7BECA"/><g stroke="#B7BECA" stroke-width="3">${[22,36,50,64,78,92].map(x=>`<line x1="${x}" y1="30" x2="${x}" y2="36"/>`).join('')}</g><rect x="10" y="62" width="140" height="6" fill="#fff"/><rect x="126" y="22" width="12" height="7" rx="2" fill="#FFC21A"/><circle cx="38" cy="88" r="13" fill="#1B2A4A"/><circle cx="38" cy="88" r="5" fill="#D9DEE6"/><circle cx="122" cy="88" r="13" fill="#1B2A4A"/><circle cx="122" cy="88" r="5" fill="#D9DEE6"/></svg>`,
+    ambulance: `<svg viewBox="0 0 160 110"><rect x="10" y="30" width="140" height="54" rx="8" fill="#fff" stroke="#B7BECA" stroke-width="3"/><rect x="112" y="38" width="30" height="18" rx="3" fill="#BFE3FF"/><rect x="10" y="62" width="140" height="7" fill="#E0301E"/><rect x="60" y="22" width="22" height="9" rx="2" fill="#E0301E"/><circle cx="38" cy="88" r="13" fill="#1B2A4A"/><circle cx="38" cy="88" r="5" fill="#D9DEE6"/><circle cx="122" cy="88" r="13" fill="#1B2A4A"/><circle cx="122" cy="88" r="5" fill="#D9DEE6"/></svg>`,
+    police: `<svg viewBox="0 0 160 110"><path d="M42 40L58 22H110L126 40z" fill="#fff" stroke="#1B2A4A" stroke-width="3"/><rect x="62" y="27" width="20" height="12" fill="#BFE3FF"/><rect x="88" y="27" width="18" height="12" fill="#BFE3FF"/><rect x="74" y="13" width="20" height="9" rx="2" fill="#E0301E"/><rect x="12" y="40" width="136" height="20" rx="5" fill="#fff" stroke="#1B2A4A" stroke-width="3"/><rect x="12" y="58" width="136" height="24" rx="5" fill="#1B2A4A"/><circle cx="40" cy="88" r="13" fill="#1B2A4A"/><circle cx="40" cy="88" r="5" fill="#D9DEE6"/><circle cx="120" cy="88" r="13" fill="#1B2A4A"/><circle cx="120" cy="88" r="5" fill="#D9DEE6"/></svg>`,
+    bus: `<svg viewBox="0 0 160 110"><rect x="8" y="22" width="144" height="62" rx="12" fill="#FFC21A"/>${[18,46,74,102].map(x=>`<rect x="${x}" y="32" width="22" height="20" rx="3" fill="#BFE3FF"/>`).join('')}<rect x="130" y="32" width="14" height="40" rx="3" fill="#BFE3FF"/><rect x="8" y="62" width="144" height="5" fill="#F2A900"/><circle cx="38" cy="88" r="13" fill="#1B2A4A"/><circle cx="38" cy="88" r="5" fill="#D9DEE6"/><circle cx="122" cy="88" r="13" fill="#1B2A4A"/><circle cx="122" cy="88" r="5" fill="#D9DEE6"/></svg>`,
+    alarm: `<svg viewBox="0 0 120 120"><rect x="22" y="14" width="76" height="92" rx="8" fill="#E0301E"/><circle cx="60" cy="56" r="26" fill="#fff"/><circle cx="60" cy="56" r="15" fill="#E0301E"/><circle cx="60" cy="56" r="15" fill="none" stroke="#A81F12" stroke-width="3"/><rect x="34" y="88" width="52" height="8" rx="3" fill="#fff"/></svg>`,
+    aed: `<svg viewBox="0 0 120 120"><rect x="16" y="18" width="88" height="84" rx="10" fill="#fff" stroke="#F28A1A" stroke-width="5"/><path d="M60 88C40 74 30 64 30 50a14 14 0 0 1 30-6a14 14 0 0 1 30 6c0 14-10 24-30 38z" fill="#1E9E5A"/><path d="M64 44L52 62H62L56 76L70 56H60z" fill="#fff"/></svg>`,
+    exit: `<svg viewBox="0 0 120 120"><rect x="10" y="26" width="100" height="68" rx="6" fill="#1E9E5A"/><rect x="72" y="36" width="28" height="48" fill="#fff"/><rect x="76" y="40" width="20" height="44" fill="#1E9E5A"/><circle cx="44" cy="42" r="7" fill="#fff"/><path d="M44 50l-6 16l10 6l-4 14M42 60l14-2l6 8M38 66l-12 4" stroke="#fff" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    extinguisher: `<svg viewBox="0 0 120 120"><rect x="40" y="34" width="40" height="76" rx="14" fill="#E0301E"/><rect x="48" y="22" width="24" height="14" rx="3" fill="#1B2A4A"/><path d="M50 22L78 12" stroke="#1B2A4A" stroke-width="6" stroke-linecap="round"/><path d="M72 30c18 2 22 18 16 38" stroke="#1B2A4A" stroke-width="6" fill="none" stroke-linecap="round"/><rect x="48" y="56" width="24" height="26" rx="3" fill="#fff"/></svg>`
+  };
+
+  // ---------- question bank ----------
+  const COURSES = {
+    kids: {
+      name: 'ちびっこコース', who: 'ようじ〜しょうがく1・2ねんせい', time: 30,
+      questions: [
+        { type: 'single', text: 'かじを みつけたら、なんばんに でんわする？',
+          choices: ['110ばん', '119ばん', '117ばん', '177ばん'], answer: 1,
+          explain: '119ばん は、かじ や きゅうきゅうしゃ を よぶ でんわ だよ。110ばん は けいさつ。でんわ は おとな と いっしょに かけよう。' },
+        { type: 'tf', text: 'ふく に ひ が ついたら、はしって にげる。', answer: false,
+          explain: 'はしる と かぜ で ひ が おおきく なっちゃう！「とまって・たおれて・ころがって」ひ を けそう。' },
+        { type: 'image', text: 'しょうぼうしゃ は どれ？',
+          choices: [svg.ambulance, svg.firetruck, svg.police, svg.bus], answer: 1,
+          explain: 'あかくて、はしご が ついている のが しょうぼうしゃ。しろい くるま は きゅうきゅうしゃ だよ。' },
+        { type: 'multi', text: 'にげる ときの おやくそく。ただしい もの を ぜんぶ えらぼう！',
+          choices: ['おさない', 'はしらない', 'おもちゃ を とりに もどる', 'しゃべらない'], answers: [0, 1, 3],
+          explain: 'おやくそく は「お・は・し・も」。おさない・はしらない・しゃべらない・もどらない。おもちゃ を とりに もどったら あぶない よ。' },
+        { type: 'order', text: 'しょうぼうし さん、しゅつどう！ じゅんばん に ならべよう。',
+          items: ['「かじです！」と れんらく が くる', 'ぼうかふく を きる', 'しょうぼうしゃ に のる', 'ホース で ひ を けす'],
+          explain: 'れんらく が きたら、すぐに ぼうかふく を きて しょうぼうしゃ で しゅつどう！ げんば に ついたら ホース で ひ を けすよ。' }
+      ]
+    },
+    challenge: {
+      name: 'チャレンジコース', who: 'しょうがく3ねんせい〜ちゅうがくせい', time: 20,
+      questions: [
+        { type: 'single', text: `${R('住宅用','じゅうたくよう')}${R('火災','かさい')}${R('警報器','けいほうき')}を、${R('必','かなら')}ずつけることになっている${R('部屋','へや')}は？`,
+          choices: [R('寝室','しんしつ'), R('浴室','よくしつ'), R('玄関','げんかん'), R('物置','ものおき')], answer: 0,
+          explain: `${R('寝','ね')}ているときは${R('火事','かじ')}に${R('気','き')}づきにくいので、${R('全国','ぜんこく')}どこでも${R('寝室','しんしつ')}への${R('設置','せっち')}が${R('義務','ぎむ')}です。${R('台所','だいどころ')}などは${R('市町村','しちょうそん')}によって${R('決','き')}まりがちがいます。` },
+        { type: 'tf', text: `${R('天','てん')}ぷら${R('油','あぶら')}の${R('火事','かじ')}は、${R('水','みず')}をかけて${R('消','け')}すのがよい。`, answer: false,
+          explain: `${R('熱','あつ')}い${R('油','あぶら')}に${R('水','みず')}をかけると、${R('油','あぶら')}が${R('飛','と')}び${R('散','ち')}って${R('火','ひ')}が${R('一気','いっき')}に${R('広','ひろ')}がります。まず${R('火','ひ')}を${R('止','と')}めて、${R('消火器','しょうかき')}を${R('使','つか')}いましょう。` },
+        { type: 'image', text: `${R('火事','かじ')}を${R('建物','たてもの')}じゅうに${R('知','し')}らせる「${R('火災','かさい')}${R('報知器','ほうちき')}の${R('押','お')}しボタン」はどれ？`,
+          choices: [svg.aed, svg.exit, svg.alarm, svg.extinguisher], answer: 2,
+          explain: `${R('赤','あか')}い${R('箱','はこ')}に${R('丸','まる')}いボタンがあるのが${R('発信機','はっしんき')}。${R('強','つよ')}く${R('押','お')}すとベルが${R('鳴','な')}ります。${R('他','ほか')}はAED・${R('非常口','ひじょうぐち')}・${R('消火器','しょうかき')}です。` },
+        { type: 'multi', text: `${R('煙','けむり')}の${R('中','なか')}を${R('逃','に')}げるとき、${R('正','ただ')}しい${R('行動','こうどう')}をすべて${R('選','えら')}ぼう。`,
+          choices: [`${R('姿勢','しせい')}を${R('低','ひく')}くする`, `ハンカチで${R('鼻','はな')}と${R('口','くち')}をおおう`, `エレベーターで${R('逃','に')}げる`, `${R('壁','かべ')}をつたって${R('進','すす')}む`], answers: [0, 1, 3],
+          explain: `${R('煙','けむり')}は${R('上','うえ')}にたまるので、${R('低','ひく')}い${R('姿勢','しせい')}で${R('進','すす')}みます。エレベーターは${R('止','と')}まって${R('閉','と')}じこめられることがあるので${R('使','つか')}いません。` },
+        { type: 'order', text: `${R('消火器','しょうかき')}の${R('使','つか')}い${R('方','かた')}。${R('正','ただ')}しい${R('順番','じゅんばん')}にならべよう。`,
+          items: [`「${R('火事','かじ')}だ！」と${R('周','まわ')}りに${R('知','し')}らせる`, `${R('黄色','きいろ')}い${R('安全','あんぜん')}ピンを${R('抜','ぬ')}く`, `ホースを${R('火元','ひもと')}に${R('向','む')}ける`, `レバーを${R('強','つよ')}くにぎる`],
+          explain: `${R('合言葉','あいことば')}は「ピン・ホース・レバー」。${R('炎','ほのお')}ではなく、${R('燃','も')}えているものの${R('根元','ねもと')}をねらって、ほうきで${R('掃','は')}くように${R('動','うご')}かします。` }
+      ]
+    }
+  };
+  const TYPE_LABEL = { single: '4たく', tf: '○×', image: 'えを えらぼう', multi: 'ぜんぶ えらぼう', order: 'ならべかえ' };
+  const EXTRA_TIME = { multi: 10, order: 15 };
+  const AVATARS = ['🚒', '🧑‍🚒', '🐶', '🐻', '🐱', '🐰'];
+  const BASE = 1000, BONUS_MAX = 500;
+
+  // sample players (dummy data for the ranking preview)
+  const SAMPLE_PLAYERS = [
+    ['はしごしゃ ケン', '🚒', 6840], ['ポンプの みいちゃん', '🐰', 6210], ['ファイヤー りく', '🧑‍🚒', 5530],
+    ['だいち', '🐻', 4720], ['ホースの たっちゃん', '🐶', 3980], ['ゆい', '🐱', 3010], ['そうま', '🚒', 2150]
+  ];
+
+  // ---------- state ----------
+  const app = document.getElementById('app');
+  const S = { name: '', avatar: AVATARS[0], course: 'kids', idx: 0, score: 0, correct: 0, bonusTotal: 0, timer: null, startAt: 0, limit: 30, picked: null };
+
+  // ---------- start screen ----------
+  function renderStart() {
+    app.innerHTML = `
+      <section class="screen">
+        <div class="hero">
+          <h1>しょうぼう<br>クイズ たいかい</h1>
+          <p>ぜんぶで 5もん。はやく こたえると ボーナス！</p>
+        </div>
+        <div class="panel">
+          <label class="label" for="nickname">ニックネーム</label>
+          <input id="nickname" class="name-input" maxlength="12" placeholder="れい：ファイヤー たろう" autocomplete="off" value="${esc(S.name)}">
+          <div class="label" id="avLabel">アイコン を えらんでね</div>
+          <div class="avatars" role="radiogroup" aria-labelledby="avLabel">
+            ${AVATARS.map(a => `<button type="button" class="avatar" role="radio" aria-checked="${a === S.avatar}" data-av="${a}">${a}</button>`).join('')}
+          </div>
+        </div>
+        <div class="panel">
+          <div class="label" id="courseLabel">コース を えらんでね</div>
+          <div class="courses" role="radiogroup" aria-labelledby="courseLabel">
+            ${Object.entries(COURSES).map(([k, c]) => `
+              <button type="button" class="course" role="radio" aria-checked="${k === S.course}" data-course="${k}">
+                <strong>${c.name}</strong>
+                <span>${c.who}</span>
+                <div class="meta"><span class="chip">${k === 'kids' ? 'ひらがな' : 'かんじ＋ふりがな'}</span><span class="chip">1もん ${c.time}びょう</span></div>
+              </button>`).join('')}
+          </div>
+        </div>
+        <button class="big-btn" id="startBtn" type="button">しゅつどう！</button>
+      </section>`;
+    app.querySelectorAll('.avatar').forEach(b => b.onclick = () => { S.avatar = b.dataset.av; sfx.tap(); app.querySelectorAll('.avatar').forEach(x => x.setAttribute('aria-checked', String(x === b))); });
+    app.querySelectorAll('.course').forEach(b => b.onclick = () => { S.course = b.dataset.course; sfx.tap(); app.querySelectorAll('.course').forEach(x => x.setAttribute('aria-checked', String(x === b))); });
+    const nameEl = document.getElementById('nickname');
+    nameEl.oninput = () => S.name = nameEl.value;
+    document.getElementById('startBtn').onclick = () => {
+      S.name = nameEl.value.trim() || 'ななしの しょうぼうし';
+      Object.assign(S, { idx: 0, score: 0, correct: 0, bonusTotal: 0 });
+      sfx.siren();
+      renderQuestion();
+    };
+  }
+
+  // ---------- question screen ----------
+  function renderQuestion() {
+    const course = COURSES[S.course], q = course.questions[S.idx], total = course.questions.length;
+    S.limit = course.time + (EXTRA_TIME[q.type] || 0);
+    S.picked = q.type === 'multi' ? new Set() : q.type === 'order' ? [] : null;
+    let body = '';
+    if (q.type === 'single') {
+      body = `<div class="choices">${q.choices.map((c, i) => `<button type="button" class="choice" data-i="${i}"><span class="shape">${svg.shapes[i]}</span>${c}</button>`).join('')}</div>`;
+    } else if (q.type === 'tf') {
+      body = `<div class="tf"><button type="button" data-v="true">${svg.maru}</button><button type="button" data-v="false">${svg.batsu}</button></div>`;
+    } else if (q.type === 'image') {
+      body = `<div class="pics">${q.choices.map((c, i) => `<button type="button" class="pic" data-i="${i}" aria-label="${'ABCD'[i]}"><span class="tag">${'ABCD'[i]}</span>${c}</button>`).join('')}</div>`;
+    } else if (q.type === 'multi') {
+      body = `<div class="checks">${q.choices.map((c, i) => `<button type="button" class="check" aria-pressed="false" data-i="${i}"><span class="box"></span><span>${c}</span></button>`).join('')}</div>
+              <div class="actions"><button class="big-btn" id="submitBtn" type="button" disabled>けってい！</button></div>`;
+    } else if (q.type === 'order') {
+      const mixed = shuffle(q.items.map((_, i) => i));
+      body = `<div class="order-slots">${q.items.map((_, n) => `<button type="button" class="slot" data-n="${n}"><span class="n">${n + 1}</span><span class="empty">ここに いれてね</span></button>`).join('')}</div>
+              <div class="pool">${mixed.map(i => `<button type="button" data-i="${i}">${q.items[i]}</button>`).join('')}</div>
+              <div class="actions"><button class="ghost-btn" id="resetBtn" type="button">やりなおす</button><button class="big-btn" id="submitBtn" type="button" disabled>けってい！</button></div>`;
+    }
+    app.innerHTML = `
+      <section class="screen">
+        <div class="q-head">
+          <div class="q-count">Q${S.idx + 1}<small> / ${total}</small></div>
+          <span class="q-type">${TYPE_LABEL[q.type]}</span>
+          <span class="q-score">${S.avatar} ${S.score.toLocaleString()} てん</span>
+        </div>
+        <div class="timer" aria-hidden="true"><div class="timer-fill" id="tFill"></div><div class="timer-num" id="tNum"></div></div>
+        <div class="q-card pop">
+          <p class="q-text">${q.text}</p>
+          ${q.type === 'multi' ? '<div class="q-hint">こたえ は ひとつ とは かぎらないよ</div>' : ''}
+          ${q.type === 'order' ? '<div class="q-hint">したの カード を じゅんばん に タッチしてね</div>' : ''}
+        </div>
+        <div id="answerArea">${body}</div>
+      </section>`;
+    wireAnswers(q);
+    startTimer();
+  }
+
+  function wireAnswers(q) {
+    const area = document.getElementById('answerArea');
+    if (q.type === 'single' || q.type === 'image') {
+      area.querySelectorAll('[data-i]').forEach(b => b.onclick = () => judge(q, Number(b.dataset.i)));
+    } else if (q.type === 'tf') {
+      area.querySelectorAll('[data-v]').forEach(b => b.onclick = () => judge(q, b.dataset.v === 'true'));
+    } else if (q.type === 'multi') {
+      const submit = document.getElementById('submitBtn');
+      area.querySelectorAll('.check').forEach(b => b.onclick = () => {
+        const i = Number(b.dataset.i); sfx.tap();
+        S.picked.has(i) ? S.picked.delete(i) : S.picked.add(i);
+        b.setAttribute('aria-pressed', String(S.picked.has(i)));
+        submit.disabled = S.picked.size === 0;
+      });
+      submit.onclick = () => judge(q, S.picked);
+    } else if (q.type === 'order') {
+      const submit = document.getElementById('submitBtn');
+      const paint = () => {
+        area.querySelectorAll('.slot').forEach((s, n) => {
+          const i = S.picked[n];
+          s.classList.toggle('filled', i !== undefined);
+          s.innerHTML = `<span class="n">${n + 1}</span>` + (i !== undefined ? `<span>${q.items[i]}</span>` : '<span class="empty">ここに いれてね</span>');
+        });
+        area.querySelectorAll('.pool button').forEach(b => b.hidden = S.picked.includes(Number(b.dataset.i)));
+        submit.disabled = S.picked.length !== q.items.length;
+      };
+      area.querySelectorAll('.pool button').forEach(b => b.onclick = () => { S.picked.push(Number(b.dataset.i)); sfx.tap(); paint(); });
+      area.querySelectorAll('.slot').forEach(s => s.onclick = () => { const n = Number(s.dataset.n); if (S.picked[n] === undefined) return; S.picked.splice(n, 1); sfx.tap(); paint(); });
+      document.getElementById('resetBtn').onclick = () => { S.picked = []; paint(); };
+      submit.onclick = () => judge(q, S.picked);
+    }
+  }
+
+  // ---------- timer ----------
+  function startTimer() {
+    stopTimer();
+    S.startAt = performance.now();
+    let lastSec = null;
+    const fill = document.getElementById('tFill'), num = document.getElementById('tNum');
+    const step = () => {
+      const left = Math.max(0, S.limit - (performance.now() - S.startAt) / 1000);
+      fill.style.transform = `scaleX(${left / S.limit})`;
+      fill.classList.toggle('hurry', left <= 5);
+      const sec = Math.ceil(left);
+      num.textContent = `のこり ${sec} びょう`;
+      if (sec !== lastSec && sec <= 5 && sec > 0) sfx.tick();
+      lastSec = sec;
+      if (left <= 0) { judge(COURSES[S.course].questions[S.idx], undefined, true); return; }
+      S.timer = requestAnimationFrame(step);
+    };
+    S.timer = requestAnimationFrame(step);
+  }
+  function stopTimer() { if (S.timer) cancelAnimationFrame(S.timer); S.timer = null; }
+  const timeLeft = () => Math.max(0, S.limit - (performance.now() - S.startAt) / 1000);
+
+  // ---------- judging ----------
+  function isCorrect(q, v) {
+    if (v === undefined) return false;
+    if (q.type === 'single' || q.type === 'image') return v === q.answer;
+    if (q.type === 'tf') return v === q.answer;
+    if (q.type === 'multi') return v.size === q.answers.length && q.answers.every(i => v.has(i));
+    if (q.type === 'order') return v.every((i, n) => i === n);
+  }
+
+  function judge(q, value, timeout = false) {
+    const left = timeLeft();
+    stopTimer();
+    const ok = isCorrect(q, value);
+    const bonus = ok ? Math.round(BONUS_MAX * left / S.limit) : 0;
+    const gained = ok ? BASE + bonus : 0;
+    S.score += gained; S.bonusTotal += bonus; if (ok) S.correct++;
+    ok ? sfx.correct() : sfx.wrong();
+    markAnswers(q, value);
+
+    const last = S.idx === COURSES[S.course].questions.length - 1;
+    const wrap = document.createElement('div');
+    wrap.className = 'sheet-wrap';
+    wrap.innerHTML = `
+      <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="verdictTitle">
+        <div class="verdict ${ok ? 'ok' : 'ng'}">
+          <div class="verdict-mark">${ok ? svg.maru : svg.batsu}</div>
+          <div>
+            <h2 id="verdictTitle">${ok ? 'せいかい！' : timeout ? 'じかん ぎれ！' : 'おしい！'}</h2>
+            <div>${ok ? (bonus > 350 ? 'すごい はやさ！ さすが しょうぼうし！' : 'よく しってるね！') : 'つぎは きっと できるよ！'}</div>
+          </div>
+        </div>
+        <div class="points">
+          ${ok ? `<span class="chip">せいかい +${BASE}</span><span class="chip bonus">はやおし ボーナス +${bonus}</span>` : '<span class="chip">+0 てん</span>'}
+          <span class="chip">ごうけい ${S.score.toLocaleString()} てん</span>
+        </div>
+        ${!ok && q.type === 'order' ? `<div class="explain"><b>ただしい じゅんばん</b>${q.items.map((t, n) => `${n + 1}. ${t}`).join('<br>')}</div>` : ''}
+        <div class="explain"><b>かいせつ</b>${q.explain}</div>
+        <button class="big-btn ${last ? '' : 'secondary'}" id="nextBtn" type="button">${last ? 'けっか を みる！' : 'つぎ の もんだい'}</button>
+      </div>`;
+    document.body.appendChild(wrap);
+    const next = document.getElementById('nextBtn');
+    next.focus();
+    next.onclick = () => { wrap.remove(); sfx.tap(); if (last) renderResult(); else { S.idx++; renderQuestion(); } };
+  }
+
+  function markAnswers(q, v) {
+    const area = document.getElementById('answerArea');
+    area.classList.add('revealed');
+    if (q.type === 'single' || q.type === 'image') {
+      area.querySelectorAll('[data-i]').forEach(b => {
+        const i = Number(b.dataset.i);
+        if (i === q.answer) b.classList.add('is-right');
+        else if (i === v) b.classList.add('is-picked-wrong');
+        else b.classList.add('is-wrong');
+      });
+    } else if (q.type === 'tf') {
+      area.querySelectorAll('[data-v]').forEach(b => {
+        const bv = b.dataset.v === 'true';
+        if (bv === q.answer) b.classList.add('is-right');
+        else if (bv === v) b.classList.add('is-picked-wrong');
+        else b.classList.add('is-wrong');
+      });
+    } else if (q.type === 'multi') {
+      area.querySelectorAll('.check').forEach(b => {
+        const i = Number(b.dataset.i), right = q.answers.includes(i), picked = v && v.has(i);
+        if (right) b.classList.add('is-right');
+        else if (picked) b.classList.add('is-picked-wrong');
+        else b.classList.add('is-wrong');
+      });
+      const s = document.getElementById('submitBtn'); if (s) s.hidden = true;
+    } else if (q.type === 'order') {
+      area.querySelectorAll('button').forEach(b => b.disabled = true);
+      const a = area.querySelector('.actions'); if (a) a.hidden = true;
+    }
+  }
+
+  // ---------- result ----------
+  function renderResult() {
+    const total = COURSES[S.course].questions.length;
+    const all = SAMPLE_PLAYERS.map(([n, a, s]) => ({ n, a, s, me: false })).concat({ n: S.name, a: S.avatar, s: S.score, me: true })
+      .sort((x, y) => y.s - x.s || (x.me ? -1 : 1));
+    const myRank = all.findIndex(p => p.me) + 1;
+    const title = S.correct === total ? 'パーフェクト！ きみは めいよ しょうぼうし！' : S.correct >= 3 ? 'すばらしい！ たのもしい しょうぼうし！' : 'よく がんばったね！ また ちょうせん しよう！';
+    app.innerHTML = `
+      <section class="screen">
+        <div class="result-hero pop">
+          <div class="who">${S.avatar}</div>
+          <h2>${esc(S.name)} さん</h2>
+          <div class="medal-score">${S.score.toLocaleString()}<small> てん</small></div>
+          <div>${title}</div>
+        </div>
+        <div class="stats">
+          <div class="stat"><b>${myRank}<small style="font-size:.5em">い</small></b><span>じゅんい</span></div>
+          <div class="stat"><b>${S.correct}/${total}</b><span>せいかい</span></div>
+          <div class="stat"><b>${S.bonusTotal.toLocaleString()}</b><span>はやおし ボーナス</span></div>
+        </div>
+        <div class="panel">
+          <div class="rank-head"><h3>${COURSES[S.course].name} ランキング</h3><small>※ ほかの さんかしゃ は サンプル データ です</small></div>
+          <ol class="ranking">
+            ${all.map((p, i) => `<li class="${p.me ? 'me' : ''} ${i === 0 ? 'top1' : ''}"><span class="pos">${i + 1}</span><span class="av">${p.a}</span><span class="nm">${esc(p.n)}</span><span>${p.s.toLocaleString()}</span></li>`).join('')}
+          </ol>
+        </div>
+        <div class="actions">
+          <button class="big-btn" id="againBtn" type="button">もういちど あそぶ</button>
+        </div>
+      </section>`;
+    window.scrollTo({ top: 0 });
+    sfx.fanfare();
+    confetti();
+    document.getElementById('againBtn').onclick = () => { sfx.tap(); renderStart(); };
+  }
+
+  function confetti() {
+    const box = document.createElement('div'); box.className = 'confetti';
+    const colors = ['#E0301E', '#FFC21A', '#1F6FD1', '#1E9E5A', '#D9DEE6'];
+    for (let i = 0; i < 70; i++) {
+      const p = document.createElement('i');
+      p.style.left = Math.random() * 100 + '%';
+      p.style.background = colors[i % colors.length];
+      p.style.animationDuration = 2.2 + Math.random() * 1.8 + 's';
+      p.style.animationDelay = Math.random() * .6 + 's';
+      box.appendChild(p);
+    }
+    document.body.appendChild(box);
+    setTimeout(() => box.remove(), 5000);
+  }
+
+  renderStart();
+})();
+</script>
+
+</body></html>
